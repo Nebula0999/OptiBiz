@@ -1,0 +1,42 @@
+"""URL configuration for OptiBiz."""
+
+from django.contrib import admin
+from django.urls import include, path
+from rest_framework.routers import DefaultRouter
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
+from apps.business.views import BranchViewSet, BusinessViewSet
+from apps.customers.views import CustomerViewSet
+from apps.expenses.views import ExpenseViewSet
+from apps.inventory.views import InventoryViewSet, StockMovementViewSet
+from apps.products.views import CategoryViewSet, ProductViewSet
+from apps.sales.views import PaymentViewSet, SaleItemViewSet, SaleViewSet
+from apps.sacco.views import ContributionViewSet, LoanRepaymentViewSet, LoanViewSet, SACCOMemberViewSet
+from apps.users.views import RoleViewSet, UserViewSet
+
+
+router = DefaultRouter()
+router.register(r"businesses", BusinessViewSet, basename="business")
+router.register(r"branches", BranchViewSet, basename="branch")
+router.register(r"roles", RoleViewSet, basename="role")
+router.register(r"users", UserViewSet, basename="user")
+router.register(r"categories", CategoryViewSet, basename="category")
+router.register(r"products", ProductViewSet, basename="product")
+router.register(r"inventory", InventoryViewSet, basename="inventory")
+router.register(r"stock-movements", StockMovementViewSet, basename="stockmovement")
+router.register(r"customers", CustomerViewSet, basename="customer")
+router.register(r"sales", SaleViewSet, basename="sale")
+router.register(r"sale-items", SaleItemViewSet, basename="saleitem")
+router.register(r"payments", PaymentViewSet, basename="payment")
+router.register(r"expenses", ExpenseViewSet, basename="expense")
+router.register(r"sacco-members", SACCOMemberViewSet, basename="sacco-member")
+router.register(r"sacco-contributions", ContributionViewSet, basename="sacco-contribution")
+router.register(r"sacco-loans", LoanViewSet, basename="sacco-loan")
+router.register(r"sacco-repayments", LoanRepaymentViewSet, basename="sacco-repayment")
+
+urlpatterns = [
+    path("admin/", admin.site.urls),
+    path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path("api/", include(router.urls)),
+]
