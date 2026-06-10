@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  @apply box-border;
+}
+
+body {
+  @apply bg-gray-50 text-gray-900;
+}
+
+a {
+  @apply text-primary-600 hover:text-primary-700 transition-colors;
+}
+
+button {
+  @apply transition-colors;
+}

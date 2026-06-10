@@ -4,6 +4,7 @@ from pathlib import Path
 import os
 
 import dj_database_url
+import django
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -37,6 +38,7 @@ INSTALLED_APPS = [
     "apps.sales",
     "apps.expenses",
     "apps.sacco",
+    "apps.notifications",
 ]
 
 MIDDLEWARE = [
@@ -72,10 +74,14 @@ WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 
 DATABASES = {
-    "default": dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-        conn_max_age=600,
-    )
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.environ.get("POSTGRES_DB", "optibiz"),
+            "USER": os.environ.get("POSTGRES_USER", "postgres"),
+            "PASSWORD": os.environ.get("POSTGRES_PASSWORD", "Nebula@2020"),
+            "HOST": os.environ.get("POSTGRES_HOST", "localhost"),
+            "PORT": os.environ.get("POSTGRES_PORT", "5432"),
+        }
 }
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -120,7 +126,53 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "0.1.0",
 }
 
-CORS_ALLOW_ALL_ORIGINS = True
+# Authentication backends
+AUTHENTICATION_BACKENDS = [
+    'apps.users.views.EmailOrUsernameBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+# CORS Configuration
+CORS_ALLOWED_ORIGINS = [
+    host.strip() 
+    for host in os.environ.get(
+        "CORS_ALLOWED_ORIGINS",
+        "http://localhost:5173,http://localhost:3000,http://localhost:8000,http://127.0.0.1:5173,http://127.0.0.1:3000"
+    ).split(",")
+    if host.strip()
+]
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
+
+# SimpleJWT configuration
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": SECRET_KEY,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+}
 
 CHANNEL_LAYERS = {
     "default": {
