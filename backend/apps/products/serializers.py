@@ -11,12 +11,15 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class ProductSerializer(serializers.ModelSerializer):
+    category_name = serializers.CharField(source="category.name", read_only=True)
+
     class Meta:
         model = Product
         fields = [
             "id",
             "business",
             "category",
+            "category_name",
             "name",
             "sku",
             "buying_price",

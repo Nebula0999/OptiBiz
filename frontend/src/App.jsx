@@ -18,6 +18,7 @@ import { SaccoPage } from '@/pages/SaccoPage';
 import { ReportsPage } from '@/pages/ReportsPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { LandingPage } from '@/pages/LandingPage';
+import { RegisterPageTwo } from '@/pages/Register2';
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -49,13 +50,24 @@ function App() {
               path="/home"
               element={<LandingPage />}
             />
-        
+            <Route
+              path="/register1"
+              element={<RegisterPageTwo />}
+            />
 
             <Route
               path="/register"
               element={
                 <PublicRoute>
                   <RegisterPage />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/register2"
+              element={
+                <PublicRoute>
+                  <RegisterPageTwo />
                 </PublicRoute>
               }
             />

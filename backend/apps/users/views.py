@@ -8,7 +8,7 @@ from django.contrib.auth.backends import ModelBackend
 
 from apps.core.views import BusinessScopedModelViewSet
 from apps.users.models import Role
-from apps.users.serializers import RoleSerializer, UserSerializer
+from apps.users.serializers import RoleSerializer, UserRegistrationSerializer, UserSerializer
 
 
 User = get_user_model()
@@ -98,6 +98,11 @@ class RoleViewSet(viewsets.ModelViewSet):
 class UserViewSet(BusinessScopedModelViewSet):
     queryset = User.objects.select_related("business", "role").all()
     serializer_class = UserSerializer
+
+    def get_serializer_class(self):
+        if self.action == "register":
+            return UserRegistrationSerializer
+        return super().get_serializer_class()
 
     @action(detail=False, methods=["get", "put", "patch"])
     def me(self, request):

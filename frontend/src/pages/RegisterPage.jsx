@@ -11,13 +11,14 @@ import { validateEmail, validatePhone } from '@/lib/utils';
 
 export function RegisterPage() {
   const [formData, setFormData] = useState({
-    full_name: '',
+    first_name: '',
+    last_name: '',
     email: '',
     phone: '',
-    password: '',
-    password_confirm: '',
     business_name: '',
     industry: '',
+    password: '',
+    password_confirm: '',
   });
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
@@ -33,7 +34,8 @@ export function RegisterPage() {
     e.preventDefault();
     const newErrors = {};
 
-    if (!formData.full_name) newErrors.full_name = 'Name is required';
+    if (!formData.first_name) newErrors.first_name = 'First name is required';
+    if (!formData.last_name) newErrors.last_name = 'Last name is required';
     if (!formData.email) newErrors.email = 'Email is required';
     else if (!validateEmail(formData.email))
       newErrors.email = 'Invalid email format';
@@ -54,28 +56,27 @@ export function RegisterPage() {
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
 
-    // Map form data to API payload
-    const nameParts = formData.full_name.split(' ');
     const apiPayload = {
-      username: formData.email.split('@')[0],
       email: formData.email,
-      password: formData.password,
-      first_name: nameParts[0],
-      last_name: nameParts.slice(1).join(' ') || '',
+      first_name: formData.first_name,
+      last_name: formData.last_name,
       phone: formData.phone,
+      business_name: formData.business_name,
+      industry: formData.industry,
+      password: formData.password,
     };
 
     registerMutation.mutate(apiPayload, {
       onSuccess: (res) => {
-        localStorage.setItem('access_token', res.data.access);
-        localStorage.setItem('refresh_token', res.data.refresh);
+        const data = res.data || res;
+        localStorage.setItem('access_token', data.access);
+        localStorage.setItem('refresh_token', data.refresh);
         
-        // Store user info in Redux
-        if (res.data.user) {
-          dispatch(setUser(res.data.user));
+        if (data.user) {
+          dispatch(setUser(data.user));
         }
         
-        navigate('/app/dashboard');
+        navigate('/register2');
       },
       onError: (error) => {
         const data = error.response?.data;
@@ -106,15 +107,27 @@ export function RegisterPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
-              label="Full Name"
-              placeholder="John Doe"
-              name="full_name"
-              value={formData.full_name}
-              onChange={handleChange}
-              error={errors.full_name}
-              required
-            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Input
+                label="First Name"
+                placeholder="John"
+                name="first_name"
+                value={formData.first_name}
+                onChange={handleChange}
+                error={errors.first_name}
+                required
+              />
+
+              <Input
+                label="Last Name"
+                placeholder="Doe"
+                name="last_name"
+                value={formData.last_name}
+                onChange={handleChange}
+                error={errors.last_name}
+                required
+              />
+            </div>
 
             <Input
               label="Email"

@@ -2,7 +2,7 @@ import apiClient from './api-client';
 
 // Auth endpoints
 export const authAPI = {
-  register: (data) => apiClient.post('/auth/register/', data),
+  register: (data) => apiClient.post('/users/register/', data),
   login: (data) => apiClient.post('/auth/login/', data),
   logout: () => apiClient.post('/auth/logout/'),
   refreshToken: (refreshToken) =>
@@ -117,4 +117,13 @@ export const notificationsAPI = {
   list: (params) => apiClient.get('/notifications/', { params }),
   markAsRead: (id) => apiClient.post(`/notifications/${id}/mark-read/`),
   markAllAsRead: () => apiClient.post('/notifications/mark-all-read/'),
+};
+
+//category endpoints
+export const categoriesAPI = {
+  list: (params) => apiClient.get('/categories/', { params }),
+  create: (data) => apiClient.post('/categories/', data),
+  get: (id) => apiClient.get(`/categories/${id}/`),
+  update: (id, data) => apiClient.put(`/categories/${id}/`, data),
+  delete: (id) => apiClient.delete(`/categories/${id}/`),
 };

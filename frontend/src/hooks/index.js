@@ -24,6 +24,26 @@ export function useCurrentBusiness() {
   });
 }
 
+export function useCreateBusiness() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: api.businessAPI.create,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['business', 'me'] });
+    },
+  });
+}
+
+export function useUpdateBusiness(id) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data) => api.businessAPI.updateBusiness(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['business', 'me'] });
+    },
+  });
+}
+
 // Products hooks
 export function useProducts(params = {}) {
   return useQuery({

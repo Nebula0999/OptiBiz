@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useProducts, useCreateProduct, useDeleteProduct, useCategories } from '@/hooks';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -10,6 +10,12 @@ import { LoadingSpinner } from '@/components/ui/Loading';
 import { Badge } from '@/components/ui/Badge';
 import { formatCurrency } from '@/lib/utils';
 import { Plus, Trash2 } from 'lucide-react';
+
+function getList(data) {
+  const payload = data?.data || data;
+  if (Array.isArray(payload)) return payload;
+  return payload?.results || [];
+}
 
 export function ProductsPage() {
   const [isAddingProduct, setIsAddingProduct] = useState(false);
@@ -26,12 +32,27 @@ export function ProductsPage() {
   const { data: productsData, isLoading } = useProducts({
     search: searchTerm,
   });
-  const { data: categoriesData } = useCategories();
+  
+  const {
+    data: categoriesData,
+    isLoading: categoriesLoading,
+    isError: categoriesError,
+  } = useCategories();
   const createProductMutation = useCreateProduct();
   const deleteProductMutation = useDeleteProduct();
 
-  const products = productsData?.results || [];
-  const categories = categoriesData?.results || [];
+  const products = getList(productsData);
+  const categories = getList(categoriesData);
+  const categoryOptions = [
+    {
+      value: '',
+      label: categoriesLoading ? 'Loading categories...' : 'Select a category',
+    },
+    ...categories.map((cat) => ({
+      value: cat.id,
+      label: cat.name,
+    })),
+  ];
 
   const handleAddProduct = async (e) => {
     e.preventDefault();
@@ -41,6 +62,15 @@ export function ProductsPage() {
       return;
     }
 
+    const payload = {
+      name: formData.name,
+      sku: formData.sku,
+      category: formData.category,
+      buying_price: parseFloat(formData.buying_price) || 0,
+      selling_price: parseFloat(formData.selling_price),
+      reorder_level: parseInt(formData.reorder_level, 10) || 10,
+    };
+
     createProductMutation.mutate(
       {
         ...formData,
@@ -48,6 +78,7 @@ export function ProductsPage() {
         selling_price: parseFloat(formData.selling_price),
         reorder_level: parseFloat(formData.reorder_level) || 10,
       },
+      payload,
       {
         onSuccess: () => {
           setFormData({
@@ -137,16 +168,26 @@ export function ProductsPage() {
 
               <Select
                 label="Category"
-                options={categories.map((cat) => ({
-                  value: cat.id,
-                  label: cat.name,
-                }))}
+                options={categoryOptions}
                 value={formData.category}
                 onChange={(e) =>
                   setFormData({ ...formData, category: e.target.value })
                 }
+                disabled={categoriesLoading || categories.length === 0}
                 required
               />
+
+              {categoriesError && (
+                <p className="text-sm text-red-600 md:col-span-2">
+                  Could not load categories. Please refresh and try again.
+                </p>
+              )}
+
+              {!categoriesLoading && !categoriesError && categories.length === 0 && (
+                <p className="text-sm text-gray-500 md:col-span-2">
+                  No categories found. Add a category first, then create products.
+                </p>
+              )}
 
               <Input
                 label="Buying Price"
@@ -183,10 +224,20 @@ export function ProductsPage() {
               />
 
               <div className="md:col-span-2 flex gap-2">
+                {createProductMutation.isError && (
+                  <p className="text-sm text-red-600 self-center">
+                    {createProductMutation.error?.response?.data?.detail ||
+                      'Could not add product. Check the fields and try again.'}
+                  </p>
+                )}
                 <Button
                   type="submit"
                   variant="primary"
-                  disabled={createProductMutation.isPending}
+                  disabled={
+                    createProductMutation.isPending ||
+                    categoriesLoading ||
+                    categories.length === 0
+                  }
                 >
                   {createProductMutation.isPending ? 'Adding...' : 'Add Product'}
                 </Button>
