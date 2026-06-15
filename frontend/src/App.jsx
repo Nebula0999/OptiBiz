@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import { Provider } from 'react-redux';
 import store from '@/store';
+import { AuthBootstrap } from '@/components/AuthBootstrap';
 import { PrivateRoute, PublicRoute } from '@/components/ProtectedRoute';
 
 // Pages
@@ -32,8 +33,9 @@ function App() {
   return (
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
-        <Router>
-          <Routes>
+        <AuthBootstrap>
+          <Router>
+            <Routes>
             {/* Public Routes */}
             <Route
               path="/login"
@@ -45,11 +47,7 @@ function App() {
             />
             <Route
               path="/home"
-              element={
-                <PublicRoute>
-                  <LandingPage />
-                </PublicRoute>
-              }
+              element={<LandingPage />}
             />
         
 
@@ -137,10 +135,11 @@ function App() {
             />
 
             {/* Fallback Routes */}
-            <Route path="/" element={<Navigate to="/app/dashboard" replace />} />
-            <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
-          </Routes>
-        </Router>
+            <Route path="/" element={<Navigate to="/home" replace />} />
+            <Route path="*" element={<Navigate to="/home" replace />} />
+            </Routes>
+          </Router>
+        </AuthBootstrap>
       </QueryClientProvider>
     </Provider>
   );

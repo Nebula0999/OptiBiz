@@ -7,8 +7,8 @@ export const authAPI = {
   logout: () => apiClient.post('/auth/logout/'),
   refreshToken: (refreshToken) =>
     apiClient.post('/auth/refresh/', { refresh: refreshToken }),
-  getCurrentUser: () => apiClient.get('/auth/me/'),
-  updateProfile: (data) => apiClient.put('/auth/profile/', data),
+  getCurrentUser: () => apiClient.get('/users/me/'),
+  updateProfile: (data) => apiClient.put('/users/me/', data),
   changePassword: (data) => apiClient.post('/auth/change-password/', data),
   forgotPassword: (email) =>
     apiClient.post('/auth/forgot-password/', { email }),
@@ -18,7 +18,7 @@ export const authAPI = {
 
 // Business endpoints
 export const businessAPI = {
-  getMe: () => apiClient.get('/businesses/me/'),
+  getMe: () => apiClient.get('/businesses/'),
   updateBusiness: (id, data) => apiClient.put(`/businesses/${id}/`, data),
   getSettings: (id) => apiClient.get(`/businesses/${id}/settings/`),
   updateSettings: (id, data) =>
@@ -89,7 +89,7 @@ export const saccoAPI = {
   createMember: (data) => apiClient.post('/sacco/members/', data),
   getMember: (id) => apiClient.get(`/sacco/members/${id}/`),
   updateMember: (id, data) => apiClient.put(`/sacco/members/${id}/`, data),
-  
+  deleteMember: (id) => apiClient.delete(`/sacco/members/${id}/`),
   getContributions: (params) =>
     apiClient.get('/sacco/contributions/', { params }),
   recordContribution: (data) => apiClient.post('/sacco/contributions/', data),

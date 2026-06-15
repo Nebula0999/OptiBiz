@@ -33,7 +33,7 @@ export function Sidebar() {
 
   const handleLogout = () => {
     dispatch(logout());
-    window.location.href = '/login';
+    window.location.href = '/home';
   };
 
   return (

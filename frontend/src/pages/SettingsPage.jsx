@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { businessAPI } from '@/lib/api';
+import { setBusiness } from '@/store/authSlice';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -11,22 +12,41 @@ import { LoadingSpinner } from '@/components/ui/Loading';
 
 export function SettingsPage() {
   const { user, business } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [formData, setFormData] = useState({
-    business_name: business?.business_name || '',
+    name: business?.name || '',
     industry: business?.industry || '',
     currency: business?.currency || 'KES',
     tax_pin: business?.tax_pin || '',
     registration_no: business?.registration_no || '',
   });
 
+  useEffect(() => {
+    if (!business || isEditing) return;
+
+    setFormData({
+      name: business.name || '',
+      industry: business.industry || '',
+      currency: business.currency || 'KES',
+      tax_pin: business.tax_pin || '',
+      registration_no: business.registration_no || '',
+    });
+  }, [business, isEditing]);
+
   const handleSave = async (e) => {
     e.preventDefault();
+    if (!business?.id) {
+      setMessage('Error saving settings: business details are still loading.');
+      return;
+    }
+
     setIsSaving(true);
     try {
-      await businessAPI.updateBusiness(business?.id, formData);
+      const response = await businessAPI.updateBusiness(business.id, formData);
+      dispatch(setBusiness(response.data));
       setMessage('Settings saved successfully!');
       setIsEditing(false);
       setTimeout(() => setMessage(''), 3000);
@@ -62,7 +82,7 @@ export function SettingsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <p className="text-sm font-medium text-gray-600">Full Name</p>
-              <p className="text-lg text-gray-900">{user?.full_name}</p>
+              <p className="text-lg text-gray-900">{user?.first_name} {user?.last_name}</p>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-600">Email</p>
@@ -96,11 +116,11 @@ export function SettingsPage() {
             <form onSubmit={handleSave} className="space-y-4">
               <Input
                 label="Business Name"
-                value={formData.business_name}
+                value={formData.name}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    business_name: e.target.value,
+                    name: e.target.value,
                   })
                 }
               />
@@ -169,7 +189,7 @@ export function SettingsPage() {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Business Name</p>
                   <p className="text-lg text-gray-900">
-                    {formData.business_name}
+                    {formData.name}
                   </p>
                 </div>
                 <div>

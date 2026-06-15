@@ -156,7 +156,7 @@ export function LandingPage() {
             Join hundreds of SMEs managing their operations with OptiBiz
           </p>
           <Link to="/register">
-            <Button variant="primary" size="lg" className="bg-white text-primary-600 hover:bg-gray-100">
+            <Button variant="primary" size="lg" className="bg-slate-500 text-primary-600 hover:bg-gray-100">
               Get Started Free
             </Button>
           </Link>

@@ -10,7 +10,7 @@ import { DataTable } from '@/components/ui/Table';
 export function DashboardPage() {
   const { data: stats, isLoading: statsLoading } = useDashboardStats();
   const { data: sales, isLoading: salesLoading } = useRecentSales();
-  const { data: alerts, isLoading: alertsLoading } = useLowStockAlerts();
+  const { data: alerts } = useLowStockAlerts();
 
   if (statsLoading) {
     return (
@@ -28,8 +28,8 @@ export function DashboardPage() {
     active_customers: 0,
   };
 
-  const recentSales = sales?.results || [];
-  const lowStockAlerts = alerts?.results || [];
+  const recentSales = sales?.data?.results || [];
+  const lowStockAlerts = alerts?.data?.results || [];
 
   const columns = [
     { key: 'id', label: 'ID' },
@@ -112,7 +112,7 @@ export function DashboardPage() {
                         {alert.product_name}
                       </p>
                       <p className="text-sm text-gray-500">
-                        {alert.current_stock} units left
+                        {alert.current_stock || alert.quantity_available} units left
                       </p>
                     </div>
                     <Badge variant="warning" size="sm">

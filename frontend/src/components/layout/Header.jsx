@@ -6,10 +6,11 @@ import { useState } from 'react';
 import { Badge } from '@/components/ui/Badge';
 
 export function Header() {
-  const { user } = useSelector((state) => state.auth);
+  const { business, user } = useSelector((state) => state.auth);
   const { data: notifications } = useNotifications();
   const dispatch = useDispatch();
   const [showDropdown, setShowDropdown] = useState(false);
+  const fullName = [user?.first_name, user?.last_name].filter(Boolean).join(' ');
 
   const unreadCount = notifications?.results?.filter(
     (n) => !n.is_read
@@ -17,14 +18,14 @@ export function Header() {
 
   const handleLogout = () => {
     dispatch(logout());
-    window.location.href = '/login';
+    window.location.href = '/home';
   };
 
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-20">
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
         <h2 className="text-lg font-semibold text-gray-900">
-          {user?.business?.business_name || 'Dashboard'}
+          {business?.name || 'Dashboard'}
         </h2>
 
         <div className="flex items-center gap-6">
@@ -51,17 +52,17 @@ export function Header() {
               className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 transition-colors"
             >
               <div className="w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center text-sm font-semibold">
-                {user?.full_name?.charAt(0).toUpperCase()}
+                {(fullName || user?.email || 'U').charAt(0).toUpperCase()}
               </div>
               <span className="text-sm font-medium text-gray-700 hidden sm:inline">
-                {user?.full_name}
+                {fullName || user?.email}
               </span>
             </button>
 
             {showDropdown && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
                 <a
-                  href="/app/profile"
+                  href="/app/settings"
                   className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors"
                 >
                   <User size={16} />
