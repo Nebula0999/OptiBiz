@@ -36,3 +36,22 @@ class Branch(TimestampedModel):
 
     def __str__(self) -> str:
         return f"{self.business.name} - {self.name}"
+    
+class Settings(TimestampedModel):
+    business_name = models.OneToOneField(Business, on_delete=models.CASCADE, related_name="settings")
+
+    @property
+    def tax_pin(self):
+        return self.business_name.tax_pin
+    @property
+    def currency(self):
+        return self.business_name.currency
+    @property
+    def country(self):
+        return self.business_name.country
+    @property
+    def industry(self):
+        return self.business_name.industry
+
+    class Meta:
+        db_table = "business_settings"

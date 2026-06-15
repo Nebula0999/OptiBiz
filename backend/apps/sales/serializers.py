@@ -4,9 +4,25 @@ from apps.sales.models import Payment, Sale, SaleItem
 
 
 class SaleSerializer(serializers.ModelSerializer):
+    customer_name = serializers.CharField(source="customer.name", read_only=True)
+    branch_name = serializers.CharField(source="branch.name", read_only=True)
+
     class Meta:
         model = Sale
-        fields = ["id", "business", "branch", "customer", "total_amount", "payment_method", "sale_date", "created_by", "created_at", "updated_at"]
+        fields = [
+            "id",
+            "business",
+            "branch",
+            "branch_name",
+            "customer",
+            "customer_name",
+            "total_amount",
+            "payment_method",
+            "sale_date",
+            "created_by",
+            "created_at",
+            "updated_at",
+        ]
         read_only_fields = ["id", "business", "created_by", "sale_date", "created_at", "updated_at"]
 
 

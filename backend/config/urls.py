@@ -5,7 +5,7 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from apps.business.views import BranchViewSet, BusinessViewSet
+from apps.business.views import BranchViewSet, BusinessViewSet, SettingsViewSet
 from apps.customers.views import CustomerViewSet
 from apps.expenses.views import ExpenseViewSet
 from apps.inventory.views import InventoryViewSet, StockMovementViewSet
@@ -20,6 +20,7 @@ from apps.notifications.views import NotificationViewSet
 router = DefaultRouter()
 router.register(r"businesses", BusinessViewSet, basename="business")
 router.register(r"branches", BranchViewSet, basename="branch")
+router.register(r"businesses/<business_id>/settings", SettingsViewSet, basename="setting")
 router.register(r"roles", RoleViewSet, basename="role")
 router.register(r"users", UserViewSet, basename="user")
 router.register(r"categories", CategoryViewSet, basename="category")

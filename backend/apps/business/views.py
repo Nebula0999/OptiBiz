@@ -1,7 +1,7 @@
 from rest_framework import permissions, viewsets
 
-from apps.business.models import Branch, Business
-from apps.business.serializers import BranchSerializer, BusinessSerializer
+from apps.business.models import Branch, Business, Settings
+from apps.business.serializers import BranchSerializer, BusinessSerializer, SettingsSerializer
 from apps.core.views import BusinessScopedModelViewSet
 
 
@@ -27,3 +27,17 @@ class BusinessViewSet(viewsets.ModelViewSet):
 class BranchViewSet(BusinessScopedModelViewSet):
     queryset = Branch.objects.select_related("business").all()
     serializer_class = BranchSerializer
+
+class SettingsViewSet(BusinessScopedModelViewSet):
+    queryset = Settings.objects.select_related("business_name").all()
+    serializer_class = SettingsSerializer
+
+    def get_object(self):
+        business = self.request.user.business
+        settings, created = Settings.objects.get_or_create(business_name=business)
+        return settings
+    
+    def perform_update(self, serializer):
+        instance = self.get_object()
+        serializer.save(business_name=instance.business_name)
+        

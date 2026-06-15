@@ -3,8 +3,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Sum, Count, Q
-from datetime import timedelta
+from django.db.models import F, Sum
 from django.utils import timezone
 
 
@@ -61,12 +60,12 @@ class DashboardViewSet(viewsets.ViewSet):
         
         # Calculate revenue from sales this month
         today = timezone.now()
-        first_day = today.replace(day=1)
-        sales = Sale.objects.filter(business=user_business, created_at__gte=first_day)
+        first_day = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        sales = Sale.objects.filter(business=user_business, sale_date__gte=first_day)
         total_revenue = sales.aggregate(Sum('total_amount'))['total_amount__sum'] or 0
         
         # Calculate expenses this month
-        expenses = Expense.objects.filter(business=user_business, date__gte=first_day)
+        expenses = Expense.objects.filter(business=user_business, expense_date__gte=first_day.date())
         total_expenses = expenses.aggregate(Sum('amount'))['amount__sum'] or 0
         
         # Calculate profit
@@ -75,14 +74,11 @@ class DashboardViewSet(viewsets.ViewSet):
         # Count low stock items
         low_stock_items = Inventory.objects.filter(
             business=user_business,
-            quantity__lte=10
+            quantity_available__lte=F('reorder_level')
         ).count()
         
         # Count active customers
-        active_customers = Customer.objects.filter(
-            business=user_business,
-            is_active=True
-        ).count()
+        active_customers = Customer.objects.filter(business=user_business).count()
         
         return Response({
             'total_revenue': float(total_revenue),
@@ -92,7 +88,7 @@ class DashboardViewSet(viewsets.ViewSet):
             'active_customers': active_customers,
         })
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], url_path='recent-sales')
     def recent_sales(self, request):
         """Get recent sales for the user's business."""
         from apps.sales.models import Sale
@@ -108,12 +104,12 @@ class DashboardViewSet(viewsets.ViewSet):
         except (ValueError, TypeError):
             limit = 10
         
-        sales = Sale.objects.filter(business=user_business).order_by('-created_at')[:limit]
+        sales = Sale.objects.filter(business=user_business).order_by('-sale_date')[:limit]
         serializer = SaleSerializer(sales, many=True)
         
         return Response({'results': serializer.data})
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], url_path='low-stock-alerts')
     def low_stock_alerts(self, request):
         """Get low stock inventory alerts."""
         from apps.inventory.models import Inventory
@@ -125,8 +121,8 @@ class DashboardViewSet(viewsets.ViewSet):
         
         low_stock = Inventory.objects.filter(
             business=user_business,
-            quantity__lte=10
-        ).order_by('quantity')
+            quantity_available__lte=F('reorder_level')
+        ).order_by('quantity_available')
         
         serializer = InventorySerializer(low_stock, many=True)
         

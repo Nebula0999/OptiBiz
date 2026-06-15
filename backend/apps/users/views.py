@@ -99,6 +99,22 @@ class UserViewSet(BusinessScopedModelViewSet):
     queryset = User.objects.select_related("business", "role").all()
     serializer_class = UserSerializer
 
+    @action(detail=False, methods=["get", "put", "patch"])
+    def me(self, request):
+        """Return or update the currently authenticated user."""
+        if request.method == "GET":
+            serializer = self.get_serializer(request.user)
+            return Response(serializer.data)
+
+        serializer = self.get_serializer(
+            request.user,
+            data=request.data,
+            partial=request.method == "PATCH",
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
     @action(detail=False, methods=["post"], permission_classes=[permissions.AllowAny])
     def register(self, request):
         """Register a new user and return tokens."""

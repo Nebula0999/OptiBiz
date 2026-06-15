@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from apps.business.models import Branch, Business
+from apps.business.models import Branch, Business, Settings
 
 
 class BusinessSerializer(serializers.ModelSerializer):
@@ -35,3 +35,18 @@ class BranchSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = ["id", "business", "created_at", "updated_at"]
+
+class SettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Settings
+        fields = [
+            "id",
+            "business_name",
+            "tax_pin",
+            "currency",
+            "country",
+            "industry",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "created_at", "updated_at"]
