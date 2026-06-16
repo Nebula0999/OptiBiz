@@ -19,6 +19,7 @@ export const authAPI = {
 // Business endpoints
 export const businessAPI = {
   getMe: () => apiClient.get('/businesses/'),
+  create: (data) => apiClient.post('/businesses/create/', data),
   updateBusiness: (id, data) => apiClient.put(`/businesses/${id}/`, data),
   getSettings: (id) => apiClient.get(`/businesses/${id}/settings/`),
   updateSettings: (id, data) =>

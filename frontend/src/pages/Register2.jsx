@@ -61,7 +61,7 @@ export function RegisterPageTwo() {
         const data = res.data || res;
         localStorage.setItem('access_token', data.access);
         localStorage.setItem('refresh_token', data.refresh);
-        
+        localStorage.setItem("registration_complete", "true");
         if (data.user) {
           dispatch(setUser(data.user));
         }

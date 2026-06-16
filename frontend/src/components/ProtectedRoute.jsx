@@ -25,3 +25,52 @@ export function PublicRoute({ children }) {
 
   return children;
 }
+
+export function OnboardingRoute({ children }) {
+  const token = localStorage.getItem("access_token");
+  const registrationComplete =
+    localStorage.getItem("registration_complete") === "true";
+
+  if (!token) {
+    return <Navigate to="/register" replace />;
+  }
+
+  if (token && registrationComplete) {
+    return <Navigate to="/app/dashboard" replace />;
+  }
+
+  return children;
+}
+
+export function OnboardingRouteTwo({ children }) {
+  const token = localStorage.getItem("access_token");
+  const registrationComplete =
+    localStorage.getItem("registration_complete") === "true";
+
+  if (!token) {
+    return <Navigate to="/registerbiz" replace />;
+  }
+
+  if (token && registrationComplete) {
+    return <Navigate to="/app/dashboard" replace />;
+  }
+
+  return children;
+}
+
+export function LandingRoute({ children }) {
+  const token = localStorage.getItem("access_token");
+  const registrationComplete =
+    localStorage.getItem("registration_complete") === "true";
+
+  if (token && !registrationComplete) {
+    return <Navigate to="/registerbiz" replace />;
+  }
+
+   if (token && registrationComplete) {
+    return <Navigate to="/app/dashboard" replace />;
+  }
+
+  return children;
+} 
+

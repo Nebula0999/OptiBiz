@@ -6,8 +6,8 @@ from apps.products.models import Category, Product
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ["id", "business", "name", "description", "created_at", "updated_at"]
-        read_only_fields = ["id", "business", "created_at", "updated_at"]
+        fields = ["id", "name", "description", "created_at", "updated_at"]
+        read_only_fields = ["id", "created_at", "updated_at"]
 
 
 class ProductSerializer(serializers.ModelSerializer):

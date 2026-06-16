@@ -4,14 +4,12 @@ from apps.core.models import TimestampedModel
 
 
 class Category(TimestampedModel):
-    business = models.ForeignKey("business.Business", on_delete=models.CASCADE, related_name="categories")
-    name = models.CharField(max_length=120)
+    name = models.CharField(max_length=120, unique=True)
     description = models.CharField(max_length=255, blank=True)
 
     class Meta:
         db_table = "products_category"
         ordering = ["name"]
-        constraints = [models.UniqueConstraint(fields=["business", "name"], name="unique_category_per_business")]
 
     def __str__(self) -> str:
         return self.name

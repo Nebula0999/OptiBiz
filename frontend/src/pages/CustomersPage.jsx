@@ -15,12 +15,20 @@ export function CustomersPage() {
     name: '',
     phone: '',
     email: '',
+    balance: '',
+    loyalty_points: '',
   });
+
+  function getList(data) {
+    const payload = data?.data || data;
+    if (Array.isArray(payload)) return payload;
+    return payload?.results || [];
+}
 
   const { data: customersData, isLoading } = useCustomers();
   const createCustomerMutation = useCreateCustomer();
 
-  const customers = customersData?.results || [];
+  const customers = getList(customersData);
 
   const handleAddCustomer = async (e) => {
     e.preventDefault();
@@ -32,7 +40,7 @@ export function CustomersPage() {
 
     createCustomerMutation.mutate(formData, {
       onSuccess: () => {
-        setFormData({ name: '', phone: '', email: '' });
+        setFormData({ name: '', phone: '', email: '', balance: '', loyalty_points: '' });
         setIsAdding(false);
       },
     });
@@ -97,6 +105,26 @@ export function CustomersPage() {
                 value={formData.email}
                 onChange={(e) =>
                   setFormData({ ...formData, email: e.target.value })
+                }
+              />
+
+              <Input
+                label="Balance"
+                type="number"
+                placeholder="0.00"
+                value={formData.balance}
+                onChange={(e) =>
+                  setFormData({ ...formData, balance: e.target.value })
+                }
+              />
+
+              <Input
+                label="Loyalty Points"
+                type="number"
+                placeholder="0"
+                value={formData.loyalty_points}
+                onChange={(e) =>
+                  setFormData({ ...formData, loyalty_points: e.target.value })
                 }
               />
 
