@@ -86,10 +86,18 @@ export function DashboardPage() {
           value={dashboardStats.profit}
           icon={TrendingUp}
         />
-        <StatCard
-          label="Active Customers"
-          value={dashboardStats.active_customers}
-        />
+        <Card className="border-yellow-200">
+          <CardContent className="pt-6">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm font-medium text-green-600">Active Customers</p>
+                <p className="text-2xl font-bold text-gray-900 mt-2">
+                  {dashboardStats.active_customers}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Alerts and Recent Sales */}
