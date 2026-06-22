@@ -33,7 +33,7 @@ export function DashboardPage() {
 
   const columns = [
     { key: 'id', label: 'ID' },
-    { key: 'customer_name', label: 'Customer' },
+    { key: 'name', label: 'Customer' },
     { key: 'total_amount', label: 'Amount', render: (val) => formatCurrency(val) },
     { key: 'payment_method', label: 'Method' },
     { key: 'sale_date', label: 'Date', render: (val) => formatDate(val) },

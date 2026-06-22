@@ -1,0 +1,34 @@
+services:
+  web:
+    build: .
+    container_name: optibiz_web
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    command: uv run python manage.py runserver
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+    env_file:
+      - .env
+
+  db:
+    image: postgres:18
+    container_name: optibiz_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - db_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -h localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  db_data:

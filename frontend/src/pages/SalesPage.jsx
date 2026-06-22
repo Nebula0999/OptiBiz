@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useSales, useCreateSale, useProducts, useCustomers } from '@/hooks';
+import { useSales, useCreateSale, useUpdateSale, useDeleteSale, useProducts, useCustomers } from '@/hooks';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -8,63 +8,149 @@ import { Select } from '@/components/ui/Select';
 import { DataTable } from '@/components/ui/Table';
 import { LoadingSpinner } from '@/components/ui/Loading';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import { Plus } from 'lucide-react';
+import { Plus, Pencil, Trash2 } from 'lucide-react';
+
+function getList(data) {
+  const payload = data?.data || data;
+  if (Array.isArray(payload)) return payload;
+  return payload?.results || [];
+}
+
+const EMPTY_FORM = {
+  product: '',
+  quantity: '1',
+  payment_method: 'cash',
+  customer: '',
+};
 
 export function SalesPage() {
   const [isAdding, setIsAdding] = useState(false);
-  const [formData, setFormData] = useState({
-    product: '',
-    quantity: '1',
-    payment_method: 'cash',
-    customer: '',
-  });
+  const [editingSale, setEditingSale] = useState(null); // sale object being edited
+  const [deletingId, setDeletingId] = useState(null);
+  const [formData, setFormData] = useState(EMPTY_FORM);
+  const [editForm, setEditForm] = useState({ payment_method: 'cash', customer: '', quantity: '1' });
 
   const { data: salesData, isLoading } = useSales();
   const { data: productsData } = useProducts();
   const { data: customersData } = useCustomers();
   const createSaleMutation = useCreateSale();
+  const updateSaleMutation = useUpdateSale();
+  const deleteSaleMutation = useDeleteSale();
 
-  const sales = salesData?.results || [];
-  const products = productsData?.results || [];
-  const customers = customersData?.results || [];
+  const sales = getList(salesData);
+  const products = getList(productsData);
+  const customers = getList(customersData);
 
   const handleAddSale = async (e) => {
     e.preventDefault();
-
     if (!formData.product || !formData.quantity) {
       alert('Please select a product and quantity');
       return;
     }
-
-    createSaleMutation.mutate(
-      {
-        product_id: parseInt(formData.product),
-        quantity: parseInt(formData.quantity),
+    try {
+      await createSaleMutation.mutateAsync({
+        product: formData.product,
+        quantity: parseInt(formData.quantity, 10),
         payment_method: formData.payment_method,
-        customer_id: formData.customer ? parseInt(formData.customer) : null,
-      },
-      {
-        onSuccess: () => {
-          setFormData({
-            product: '',
-            quantity: '1',
-            payment_method: 'cash',
-            customer: '',
-          });
-          setIsAdding(false);
+        customer: formData.customer || null,
+      });
+      setIsAdding(false);
+      setFormData(EMPTY_FORM);
+    } catch (error) {
+      console.error('Error creating sale:', error);
+      const msg = error?.response?.data
+        ? JSON.stringify(error.response.data)
+        : 'Failed to record sale. Please try again.';
+      alert(msg);
+    }
+  };
+
+  const openEdit = (sale) => {
+    setEditingSale(sale);
+    const item = sale.items?.[0];
+    setEditForm({
+      payment_method: sale.payment_method,
+      customer: sale.customer ?? '',
+      quantity: item ? String(item.quantity) : '1',
+    });
+  };
+
+  const handleEditSale = async (e) => {
+    e.preventDefault();
+    try {
+      await updateSaleMutation.mutateAsync({
+        id: editingSale.id,
+        data: {
+          payment_method: editForm.payment_method,
+          customer: editForm.customer || null,
+          quantity: parseInt(editForm.quantity, 10),
         },
-      }
-    );
+      });
+      setEditingSale(null);
+    } catch (error) {
+      console.error('Error updating sale:', error);
+      const msg = error?.response?.data
+        ? JSON.stringify(error.response.data)
+        : 'Failed to update sale. Please try again.';
+      alert(msg);
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      await deleteSaleMutation.mutateAsync(deletingId);
+      setDeletingId(null);
+    } catch (error) {
+      console.error('Error deleting sale:', error);
+      const msg = error?.response?.data
+        ? JSON.stringify(error.response.data)
+        : 'Failed to delete sale. Please try again.';
+      alert(msg);
+    }
   };
 
   const columns = [
     { key: 'id', label: 'ID' },
-    { key: 'product_name', label: 'Product' },
-    { key: 'quantity', label: 'Qty' },
-    { key: 'unit_price', label: 'Price', render: (val) => formatCurrency(val) },
+    {
+      key: 'items',
+      label: 'Product',
+      render: (items) => items?.[0]?.product_name ?? '—',
+    },
+    {
+      key: 'items',
+      label: 'Qty',
+      render: (items) => items?.[0]?.quantity ?? '—',
+    },
+    {
+      key: 'items',
+      label: 'Unit Price',
+      render: (items) => items?.[0] ? formatCurrency(items[0].unit_price) : '—',
+    },
     { key: 'total_amount', label: 'Total', render: (val) => formatCurrency(val) },
     { key: 'payment_method', label: 'Method' },
     { key: 'sale_date', label: 'Date', render: (val) => formatDate(val) },
+    {
+      key: 'actions',
+      label: 'Actions',
+      render: (_, row) => (
+        <div className="flex gap-2">
+          <button
+            onClick={() => openEdit(row)}
+            className="text-blue-600 hover:text-blue-800"
+            title="Edit"
+          >
+            <Pencil size={16} />
+          </button>
+          <button
+            onClick={() => setDeletingId(row.id)}
+            className="text-red-600 hover:text-red-800"
+            title="Delete"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      ),
+    },
   ];
 
   return (
@@ -94,43 +180,28 @@ export function SalesPage() {
             <form onSubmit={handleAddSale} className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Select
                 label="Product"
-                options={products.map((p) => ({
-                  value: p.id,
-                  label: p.name,
-                }))}
+                options={products.map((p) => ({ value: p.id, label: p.name }))}
                 value={formData.product}
-                onChange={(e) =>
-                  setFormData({ ...formData, product: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, product: e.target.value })}
                 required
               />
-
               <Input
                 label="Quantity"
                 type="number"
                 min="1"
                 value={formData.quantity}
-                onChange={(e) =>
-                  setFormData({ ...formData, quantity: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
                 required
               />
-
               <Select
                 label="Customer (Optional)"
                 options={[
                   { value: '', label: 'Walk-in Customer' },
-                  ...customers.map((c) => ({
-                    value: c.id,
-                    label: c.name,
-                  })),
+                  ...customers.map((c) => ({ value: c.id, label: c.name })),
                 ]}
                 value={formData.customer}
-                onChange={(e) =>
-                  setFormData({ ...formData, customer: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, customer: e.target.value })}
               />
-
               <Select
                 label="Payment Method"
                 options={[
@@ -140,30 +211,97 @@ export function SalesPage() {
                   { value: 'credit', label: 'Credit' },
                 ]}
                 value={formData.payment_method}
-                onChange={(e) =>
-                  setFormData({ ...formData, payment_method: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, payment_method: e.target.value })}
               />
-
               <div className="md:col-span-2 flex gap-2">
-                <Button
-                  type="submit"
-                  variant="primary"
-                  disabled={createSaleMutation.isPending}
-                >
+                <Button type="submit" variant="primary" disabled={createSaleMutation.isPending}>
                   {createSaleMutation.isPending ? 'Recording...' : 'Record Sale'}
                 </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsAdding(false)}
-                >
+                <Button type="button" variant="outline" onClick={() => setIsAdding(false)}>
                   Cancel
                 </Button>
               </div>
             </form>
           </CardContent>
         </Card>
+      )}
+
+      {/* Edit Sale Modal */}
+      {editingSale && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle>Edit Sale #{editingSale.id}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleEditSale} className="grid grid-cols-1 gap-4">
+                <Input
+                  label="Quantity"
+                  type="number"
+                  min="1"
+                  value={editForm.quantity}
+                  onChange={(e) => setEditForm({ ...editForm, quantity: e.target.value })}
+                  required
+                />
+                <Select
+                  label="Customer"
+                  options={[
+                    { value: '', label: 'Walk-in Customer' },
+                    ...customers.map((c) => ({ value: c.id, label: c.name })),
+                  ]}
+                  value={editForm.customer}
+                  onChange={(e) => setEditForm({ ...editForm, customer: e.target.value })}
+                />
+                <Select
+                  label="Payment Method"
+                  options={[
+                    { value: 'cash', label: 'Cash' },
+                    { value: 'mpesa', label: 'M-Pesa' },
+                    { value: 'card', label: 'Card' },
+                    { value: 'credit', label: 'Credit' },
+                  ]}
+                  value={editForm.payment_method}
+                  onChange={(e) => setEditForm({ ...editForm, payment_method: e.target.value })}
+                />
+                <div className="flex gap-2">
+                  <Button type="submit" variant="primary" disabled={updateSaleMutation.isPending}>
+                    {updateSaleMutation.isPending ? 'Saving...' : 'Save Changes'}
+                  </Button>
+                  <Button type="button" variant="outline" onClick={() => setEditingSale(null)}>
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Delete Confirmation */}
+      {deletingId && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <Card className="w-full max-w-sm">
+            <CardHeader>
+              <CardTitle>Delete Sale</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-700 mb-4">Are you sure you want to delete sale #{deletingId}? This cannot be undone.</p>
+              <div className="flex gap-2">
+                <Button
+                  variant="primary"
+                  className="bg-red-600 hover:bg-red-700"
+                  onClick={handleDelete}
+                  disabled={deleteSaleMutation.isPending}
+                >
+                  {deleteSaleMutation.isPending ? 'Deleting...' : 'Delete'}
+                </Button>
+                <Button variant="outline" onClick={() => setDeletingId(null)}>
+                  Cancel
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {/* Sales Table */}
